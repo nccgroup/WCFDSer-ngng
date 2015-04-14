@@ -18,3 +18,19 @@ Usage:
 I've also included a vulnerable WCF service (and client) as there don't seem to be any around. It is vulnerable to SQL injection, and has its own readme. 
 	
 cheers
+
+
+Some screenshots:
+
+Changing in repeater:
+![alt changing repeater](http://i.imgur.com/Udwd9mk.png)
+
+
+request/response
+![alt req/resp](http://i.imgur.com/ZQa4D6o.png)
+
+flagged in scanner
+![alt scanner](http://i.imgur.com/aokg1Gy.png)
+
+SQLMap supported
+![alt SQLMap](http://i.imgur.com/5gqSAz5.png)

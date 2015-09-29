@@ -23,6 +23,8 @@ import java.io.BufferedReader;
 import java.io.Console;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Properties;
+import java.io.FileInputStream;
 
 public class WCFUtils {
     public static String WCFHeader = "msbin";
@@ -73,7 +75,14 @@ public class WCFUtils {
             strBase64Content = helpers.base64Encode(content);
             String line;
             String out;
-            String[] commandWithArgs = { "NBFS.exe" , strEncodeDecode, strBase64Content };
+
+            // load properties
+            Properties appProps = new Properties();
+            FileInputStream in = new FileInputStream("wcfdser.properties");
+            appProps.load(in);
+            in.close();
+
+            String[] commandWithArgs = { appProps.getProperty("monopath"), appProps.getProperty("nbfspath"), strEncodeDecode, strBase64Content };
             Process p = Runtime.getRuntime().exec(commandWithArgs);
             BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
             if ((line = input.readLine()) != null) {

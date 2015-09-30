@@ -23,3 +23,7 @@ nbfspath=/path/to/nbfs
 ```
 
 Move the config file into Burp's root directory and load the plugin.
+
+## TODO:
+
+- [] Pretty Print

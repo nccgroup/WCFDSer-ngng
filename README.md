@@ -34,3 +34,7 @@ flagged in scanner
 
 SQLMap supported
 ![alt SQLMap](http://i.imgur.com/5gqSAz5.png)
+
+##TODO
+
+- [] Pretty print soap messages

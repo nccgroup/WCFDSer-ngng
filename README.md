@@ -37,4 +37,4 @@ SQLMap supported
 
 ##TODO
 
-- [] Pretty print soap messages
+- [ ] Pretty print soap messages

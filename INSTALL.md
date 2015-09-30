@@ -8,6 +8,15 @@ WCF Deserializer needs a working .NET Environment.  This means either MS Windows
 
 Edit the config file: `config/wcfdser.properties`
 
+### Windows
+
+```dosini
+monopath=
+nbfspath=/path/to/nbfs
+```
+
+### OS X / Linux / BSD / etc
+
 ```dosini
 monopath=/path/to/mono
 nbfspath=/path/to/nbfs

@@ -2,7 +2,7 @@
 
 ## Requirements
 
-WCF Deserializer needs a working .NET Environment.  This means either MS Windows or any platform supported by [Mono](http://www.mono-project.com/docs/about-mono/supported-platforms/)
+WCF Deserializer needs a working .NET Environment.  This means either MS Windows or any platform supported by [Mono](http://www.mono-project.com/docs/about-mono/supported-platforms/).
 
 ## Getting Started
 
@@ -13,4 +13,4 @@ monopath=/path/to/mono
 nbfspath=/path/to/nbfs
 ```
 
-Move the config file into Burp's root directory.
+Move the config file into Burp's root directory and load the plugin.

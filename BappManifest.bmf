@@ -8,4 +8,4 @@ ProOnly: False
 Author: Jon Murray, NCC Group
 ShortDescription: Allows Burp to view and modify binary SOAP objects.
 EntryPoint: build/libs/wcf-deserializer-all.jar
-BuildCommand: gradle -PburpJar=$BURP_JAR fatJar
+BuildCommand: gradle fatJar

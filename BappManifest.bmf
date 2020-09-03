@@ -2,8 +2,8 @@ Uuid: 1ddd8919e946459f9c1bb47eedb19376
 ExtensionType: 1
 Name: WCF Deserializer
 RepoName: wcf-deserializer
-ScreenVersion: 1.1
-SerialVersion: 2
+ScreenVersion: 1.2
+SerialVersion: 3
 MinPlatformVersion: 0
 ProOnly: False
 Author: Jon Murray, NCC Group

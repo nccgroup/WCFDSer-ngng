@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WCFMenu implements IContextMenuFactory {
-	private IBurpExtenderCallbacks callbacks;
-    private IExtensionHelpers helpers;
+	private final IBurpExtenderCallbacks callbacks;
+    private final IExtensionHelpers helpers;
 
 	public WCFMenu(IBurpExtenderCallbacks callbacks, IExtensionHelpers helpers) {
 		this.callbacks = callbacks;
@@ -67,7 +67,7 @@ public class WCFMenu implements IContextMenuFactory {
 					//copy it and convert it to XML
 					System.arraycopy(message, bodyOffset, body, 0, message.length - bodyOffset);
 
-					callbacks.sendToIntruder(httpService.getHost(), httpService.getPort(), (httpService.getProtocol().equals("https") ? true : false),
+					callbacks.sendToIntruder(httpService.getHost(), httpService.getPort(), httpService.getProtocol().equals("https"),
 							WCFUtils.toXML(helpers.buildHttpMessage(headers, body), helpers));
 				}
 			}
@@ -77,7 +77,7 @@ public class WCFMenu implements IContextMenuFactory {
 			}
 		});
 
-		List<JMenuItem> menus = new ArrayList();
+		ArrayList<JMenuItem> menus = new ArrayList<>();
 		menus.add(sendWCFToIntruderMenu);
 		return menus;
 	}

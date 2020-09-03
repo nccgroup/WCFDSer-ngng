@@ -18,6 +18,9 @@
 package burp;
 
 
+import java.awt.print.Printable;
+import java.io.PrintWriter;
+
 public class BurpExtender implements IBurpExtender, IMessageEditorTabFactory
 {
     private IBurpExtenderCallbacks m_callbacks;
@@ -38,7 +41,7 @@ public class BurpExtender implements IBurpExtender, IMessageEditorTabFactory
         m_helpers = callbacks.getHelpers();
         
         // set our extension name
-        callbacks.setExtensionName("WCFSDSer-ngng Extended by Jon Murray 04/2015");
+        callbacks.setExtensionName("WCF Deserializer");
         
         // register ourselves as a message editor tab factory
         WCFTabFactory factory = new WCFTabFactory(m_callbacks, m_helpers);
@@ -47,10 +50,10 @@ public class BurpExtender implements IBurpExtender, IMessageEditorTabFactory
         
         callbacks.registerContextMenuFactory(new WCFMenu(callbacks, m_helpers));
         
-        callbacks.registerHttpListener(new WCFHttpListener(m_helpers));
+        callbacks.registerHttpListener(new WCFHttpListener(m_helpers, m_callbacks));
 
-
-
+        WCFUtils.out = new PrintWriter(callbacks.getStdout());
+        WCFUtils.err = new PrintWriter(callbacks.getStderr());
     }
 
     //

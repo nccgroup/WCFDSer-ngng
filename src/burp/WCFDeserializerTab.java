@@ -17,7 +17,6 @@
 
 package burp;
 
-import javax.rmi.CORBA.Util;
 import java.awt.*;
 import java.io.IOException;
 

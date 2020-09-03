@@ -17,14 +17,20 @@
 
 package burp;
 
+import java.io.PrintWriter;
 import java.util.List;
 
 public class WCFHttpListener implements IHttpListener {
 
     private IExtensionHelpers helpers;
-    public WCFHttpListener(IExtensionHelpers helpers)
+    private IBurpExtenderCallbacks m_callbacks;
+    private PrintWriter err;
+
+    public WCFHttpListener(IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks)
     {
         this.helpers = helpers;
+        this.m_callbacks = callbacks;
+        err = new PrintWriter(callbacks.getStderr());
     }
 	@Override
 	public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo)
@@ -66,7 +72,7 @@ public class WCFHttpListener implements IHttpListener {
                     messageInfo.setResponse(helpers.buildHttpMessage(headers, XML));
 
                 } catch (Exception ex) {
-                    System.out.println("Error deserializing standard (intruder/scanner) response " + ex.getMessage());
+                    err.println("Error deserializing standard (intruder/scanner) response " + ex.getMessage());
                 }
             }
         }

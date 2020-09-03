@@ -115,8 +115,8 @@ public class WcfBinaryCodec
 
         // parse bytestream into the XML DOM
         var doc = new XmlDocument();
-	// do not resolve external resources
-	doc.XmlResolver = null;
+        // do not resolve external resources
+        doc.XmlResolver = null;
         using (var binaryReader = XmlDictionaryReader.CreateBinaryReader(binaryInput, WcfDictionaryBuilder.Dict, XmlDictionaryReaderQuotas.Max))
         {
             doc.Load(binaryReader);
@@ -163,8 +163,8 @@ public class WcfBinaryCodec
     {
         // parse string into the XML DOM
         var doc = new XmlDocument();
-	// do not resolve external resources
-	doc.XmlResolver = null;
+        // do not resolve external resources
+        doc.XmlResolver = null;
         doc.Load(xmlInput);
 
         // write bytestream
@@ -217,6 +217,7 @@ public static class WcfDictionaryBuilder
         dict.Add("Transforms");
         dict.Add("Transform");
         dict.Add("DigestMethod");
+        dict.Add("DigestValue");
         dict.Add("Address");
         dict.Add("ReplyTo");
         dict.Add("SequenceAcknowledgement");

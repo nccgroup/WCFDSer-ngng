@@ -10,14 +10,59 @@ Basically, it will deserialize, modify, reserialize, send on and (only in the ca
 
 nb. that it does make use of the "Via" header to allow it to mark requests that need serialization (and let it pass properly formatted http checks in sqlmap). If you need the via header for something, you're going to have to use something else, change the SERIALIZEHEADER in the utils file and recompile.
 
-Usage:
-	Place the NBFS.exe wherever you run burp.
-	For any problems, look in stdout (ie. run java -jar burp.jar and look in the console window)
+## How to use:
+1- Run the NBFSNetService.exe file which listens on port 7686 by default
+
+2- Add the extension and view decoded requests or responses in editor
+
+## HackerVertor usecase example:
+```
+<@d_base64><@_runCommand('valid_token_from_HV_extension')>NBFS.exe base64 encode "<@replace('\r\n','')><@replace('"','\\"')>
+
+SOAP XML Message which will be converted to binary (application/soap+msbin1)
+
+<@/replace><@/replace>"<@/_runCommand><@/d_base64>
+```
+
+The `runCommand` custom Java tag in HackVertor is:
+```
+var result = "";
+
+Runtime rt = Runtime.getRuntime();
+String[] commands = input.split(" ");
+Process proc = rt.exec(input);
+
+BufferedReader stdInput = new BufferedReader(new 
+     InputStreamReader(proc.getInputStream()));
+
+BufferedReader stdError = new BufferedReader(new 
+     InputStreamReader(proc.getErrorStream()));
+
+// Read the output from the command
+String s = null;
+while ((s = stdInput.readLine()) != null) {
+    if(result.equals("")){
+        result = s;
+    }else{
+        result += "\r\n" + s;
+    }
+    
+}
+
+// Read any errors from the attempted command
+System.out.println("Here is the standard error of the command (if any):\n");
+while ((s = stdError.readLine()) != null) {
+    System.out.println(s);
+}
+
+output = result;
+```
 
 
-I've also included a vulnerable WCF service (and client) as there don't seem to be any around. It is vulnerable to SQL injection, and has its own readme. 
-	
-cheers
+
+For any problems, look in stdout (ie. run java -jar burp.jar and look in the console window)
+
+A vulnerable WCF service (and client) has been included to practice. It is vulnerable to SQL injection, and has its own readme. 
 
 
 Some screenshots:

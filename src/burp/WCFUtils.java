@@ -17,16 +17,21 @@
 
 package burp;
 
-import sun.security.provider.Sun;
-
-import java.io.BufferedReader;
-import java.io.Console;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Future;
 
 public class WCFUtils {
     public static String WCFHeader = "msbin";
     public static String SERIALIZEHEADER = "Via:WCFSERIALIZED-GOODNESS";
+    public static PrintWriter out;
+    public static PrintWriter err;
 
 	public static byte[] toXML(byte[] message, IExtensionHelpers helpers)
     {
@@ -37,7 +42,7 @@ public class WCFUtils {
             byte[] body = new byte[message.length - bodyOffset];
 
             //copy it and convert it to XML
-            System.arraycopy(message, bodyOffset, body, 0, message.length - bodyOffset);
+            System.arraycopy(message, bodyOffset, body, 0, body.length);
 
             String xml = encodeDecodeWcf(true, helpers.bytesToString(body), helpers);
             byte[] decoded = helpers.base64Decode(xml);
@@ -45,21 +50,16 @@ public class WCFUtils {
             return helpers.buildHttpMessage(headers, decoded);
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			return message;
+			return e.getLocalizedMessage().getBytes();
 		}
 	}
 
 	public static byte[] fromXML(byte[] xml, IExtensionHelpers helpers)
     {
-
 		try {
-            byte[] decoded = helpers.base64Decode(encodeDecodeWcf(false, helpers.bytesToString(xml), helpers));
-            return  decoded;
-
+            return helpers.base64Decode(encodeDecodeWcf(false, helpers.bytesToString(xml), helpers));
 		} catch (Exception ex) {
-            System.out.println("Error deserializing XML " + ex.getMessage());
-            return null;
+            return ex.getLocalizedMessage().getBytes();
 		}
 	}
 
@@ -67,28 +67,43 @@ public class WCFUtils {
     {
         try
         {
-            String strBase64Content = "";
-            String strEncodeDecode = isBinary == true ? "DECODE" : "ENCODE";
+            Socket socket = new Socket("127.0.0.1", 7686);
+            InputStream inStream = new BufferedInputStream(socket.getInputStream());
+            OutputStream outStream = new BufferedOutputStream(socket.getOutputStream());
 
-            strBase64Content = helpers.base64Encode(content);
-            String line;
-            String out;
-            String[] commandWithArgs = { "NBFS.exe" , strEncodeDecode, strBase64Content };
-            Process p = Runtime.getRuntime().exec(commandWithArgs);
-            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            if ((line = input.readLine()) != null) {
-                out = line;
-            }
-            else
+            byte[] data = helpers.stringToBytes(content);
+            byte[] message = new byte[data.length + 1];
+
+            System.arraycopy(data, 0, message, 1, data.length);
+            if(isBinary)
             {
-                out = "An Error Has Occurred";
-            }
-            input.close();
-            return out;
+                message[0] = (byte) 0;
+			} else
+            {
+                message[0] = (byte) 1;
+			}
+
+            outStream.write(message);
+            outStream.flush();
+
+            byte[] response = new byte[1024];
+            int bytes_read;
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream(4096);
+            do {
+                bytes_read = inStream.read(response, 0, response.length);
+                buffer.write(response, 0, bytes_read);
+            } while(inStream.available() > 0);
+            outStream.close();
+            inStream.close();
+            socket.close();
+            buffer.flush();
+
+            return helpers.base64Encode(buffer.toByteArray());
         }
-        catch (Exception err)
+        catch (Exception e)
         {
-            return err.getMessage();
+            err.println(e.getLocalizedMessage());
+            return helpers.base64Encode(e.getMessage());
         }
     }
 

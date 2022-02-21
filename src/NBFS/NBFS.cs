@@ -37,29 +37,61 @@ public class NBFSNetConsole
 {
     public static void Main(string[] argv)
     {
-        if (argv.Length == 2)
+        if (argv.Length == 3)
         {
+			bool isBase64Output = false;
+			string outputString = "";
+			byte[] outputBytes = null;
+			
             try
             {
                 NBFSNet NBFS = new NBFSNet();
 
-                if (argv[0].ToLower().Equals("encode"))
+				if (argv[0].ToLower().Equals("base64")){
+					isBase64Output = true;
+				}
+				
+                if (argv[1].ToLower().Equals("encode64"))
                 {
-                    Console.WriteLine(Convert.ToBase64String(NBFS.EncodeBinaryXML(System.Text.ASCIIEncoding.ASCII.GetString(Convert.FromBase64String(argv[1])))));
+                    outputBytes = NBFS.EncodeBinaryXML(System.Text.ASCIIEncoding.ASCII.GetString(Convert.FromBase64String(argv[2])));
                 }
-                else
+                else if (argv[1].ToLower().Equals("decode64"))
                 {
-                    Console.WriteLine(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(NBFS.DecodeBinaryXML(Convert.FromBase64String(argv[1])))));
+                    outputString = NBFS.DecodeBinaryXML(Convert.FromBase64String(argv[2]));
                 }
+				else if (argv[1].ToLower().Equals("encode"))
+                {
+                    outputBytes = NBFS.EncodeBinaryXML(argv[2]);
+                }
+				else{
+					//argv[1].ToLower().Equals("decode")
+					outputString = NBFS.DecodeBinaryXML(System.Text.Encoding.UTF8.GetBytes(argv[2]));
+				}
             }
             catch (Exception e)
             {
-                Console.WriteLine(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(e.Message)));
+                outputString = e.Message;
             }
+			
+			if(isBase64Output){
+				if(outputBytes!=null){
+					Console.Write(Convert.ToBase64String(outputBytes));
+				}else{
+					Console.Write(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(outputString)));
+				}
+			}
+			else
+			{
+				if(outputBytes!=null){
+					Console.Write(System.Text.Encoding.UTF8.GetString(outputBytes));
+				}else{
+					Console.Write(outputString);
+				}
+			}
         }
         else
         {
-            Console.WriteLine("Usage: NBFS [encode|decode] Base64Data\n\nNOTE: All output, including exceptions, will be returned as a Base64 string.");
+            Console.WriteLine("Usage: NBFS [raw|base64] [encode|encode64|decode|decode64] Data\n\nNOTES: \n- The first argument is the output encoding\n- encode64 and decode64 accept their input as base64");
         }
     }
 }

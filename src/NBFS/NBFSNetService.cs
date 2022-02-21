@@ -27,12 +27,13 @@ public class StartUp
         }
         CancellationTokenSource cancellation = new CancellationTokenSource();
         NBFSNetService service = new NBFSNetService(Host, Port);
+		cancellation.Token.Register(() => service.StopService());
         var task = service.ListenForConnection(cancellation.Token);
-        Console.ReadKey(true);
+		Console.WriteLine("Press ENTER to STOP");
+        Console.ReadLine();
         cancellation.Cancel();
+		Console.WriteLine("Stopping...");
         task.Wait();
-        service.StopService();
-        Console.ReadKey(true);
     }
 }
 
@@ -57,23 +58,25 @@ public class NBFSNetService
         Console.WriteLine("Listener stopped.");
     }
 
-    public async Task ListenForConnection(CancellationToken cancellation)
+    public async Task ListenForConnection(CancellationToken cancellationToken)
     {
         try
         {
-            while (!cancellation.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var client = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
-                await handleReading(client, cancellation).ConfigureAwait(false);
+				//Console.WriteLine("ListenForConnection");
+				var client = await Task.Run(() => listener.AcceptTcpClientAsync(), cancellationToken).ConfigureAwait(false);
+				Console.WriteLine("before handleReading");
+                await handleReading(client, cancellationToken).ConfigureAwait(false);
             }
         } catch (Exception e)
         {
-            Console.WriteLine(e.Message);
-            Console.WriteLine(e.StackTrace);
+            //Console.WriteLine(e.Message);
+            //Console.WriteLine(e.StackTrace);
         }
     }
 
-    private async Task handleReading(TcpClient client, CancellationToken cancellation)
+    private async Task handleReading(TcpClient client, CancellationToken cancellationToken)
     {
         byte[] buffer = new byte[DATA_LENGTH];
         MemoryStream stream = new MemoryStream();
@@ -83,10 +86,13 @@ public class NBFSNetService
         {
             while (networkStream.DataAvailable)
             {
-                bytes_read = await networkStream.ReadAsync(buffer, 0, buffer.Length, cancellation).ConfigureAwait(false);
-                await stream.WriteAsync(buffer, 0, bytes_read, cancellation).ConfigureAwait(false);
+				//Console.WriteLine("networkStream.DataAvailable");
+                bytes_read = await networkStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
+                await stream.WriteAsync(buffer, 0, bytes_read, cancellationToken).ConfigureAwait(false);
             }
-            await Respond(client, stream.ToArray(), cancellation).ConfigureAwait(false);
+			
+			//Console.WriteLine("handleReading");
+            await Respond(client, stream.ToArray(), cancellationToken).ConfigureAwait(false);
             
         } catch(Exception e)
         {
@@ -97,29 +103,34 @@ public class NBFSNetService
         client.Close();
     }
 
-    private async Task Respond(TcpClient client, byte[] data, CancellationToken cancellation)
+    private async Task Respond(TcpClient client, byte[] data, CancellationToken cancellationToken)
     {
         byte[] response;
-        if (data[0] == (byte)0)
-        {
-            response = await codec.DecodeBinaryXML(new ArraySegment<byte>(data, 1, data.Length - 1).ToArray(), false).ConfigureAwait(false);
-        }
-        else if (data[0] == (byte)1)
-        {
-            response = await codec.EncodeBinaryXML(new ArraySegment<byte>(data, 1, data.Length - 1).ToArray()).ConfigureAwait(false);
-        } else
-        {
-            response = new byte[0];
-        }
-        try
-        {
-            await client.GetStream().WriteAsync(response, 0, response.Length, cancellation).ConfigureAwait(false);
-            await client.GetStream().FlushAsync().ConfigureAwait(false);
-        } catch(Exception e)
-        {
-            Console.WriteLine(e.Message);
-            Console.WriteLine(e.StackTrace);
-        }
+		
+		if(data.Length > 0){
+			if (data[0] == (byte)0)
+			{
+				response = await codec.DecodeBinaryXML(new ArraySegment<byte>(data, 1, data.Length - 1).ToArray(), false).ConfigureAwait(false);
+			}
+			else if (data[0] == (byte)1)
+			{
+				response = await codec.EncodeBinaryXML(new ArraySegment<byte>(data, 1, data.Length - 1).ToArray()).ConfigureAwait(false);
+			} else
+			{
+				response = new byte[0];
+			}
+			
+			try
+			{
+				//Console.WriteLine("Respond");
+				await client.GetStream().WriteAsync(response, 0, response.Length, cancellationToken).ConfigureAwait(false);
+				await client.GetStream().FlushAsync().ConfigureAwait(false);
+			} catch(Exception e)
+			{
+				Console.WriteLine(e.Message);
+				Console.WriteLine(e.StackTrace);
+			}
+		}
     }
 }
 
@@ -156,30 +167,24 @@ public class WcfBinaryCodec
             {
                 doc.Load(binaryReader);
             }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
-            Console.WriteLine(e.StackTrace);
-        }
-        // write document to the output stream with customized settings
-        var settings = new XmlWriterSettings()
-        {
-            CheckCharacters = false,
-            CloseOutput = false,
-            ConformanceLevel = ConformanceLevel.Auto,
-            Encoding = m_encoding,
-            Indent = explode,
-            IndentChars = "\t",
-            NewLineChars = Environment.NewLine,
-            NewLineHandling = explode ? NewLineHandling.Replace : NewLineHandling.None,
-            NewLineOnAttributes = explode,
-            Async = true
-            // QuoteChar = '"'
-        };
-        try
-        {
-            using (var writer = XmlWriter.Create(xmlOutput, settings))
+			
+			// write document to the output stream with customized settings
+			var settings = new XmlWriterSettings()
+			{
+				CheckCharacters = false,
+				CloseOutput = false,
+				ConformanceLevel = ConformanceLevel.Auto,
+				Encoding = m_encoding,
+				Indent = explode,
+				IndentChars = "\t",
+				NewLineChars = Environment.NewLine,
+				NewLineHandling = explode ? NewLineHandling.Replace : NewLineHandling.None,
+				NewLineOnAttributes = explode,
+				Async = true
+				// QuoteChar = '"'
+			};
+			
+			using (var writer = XmlWriter.Create(xmlOutput, settings))
             {
                 doc.Save(writer);
                 writer.Flush();
@@ -191,6 +196,7 @@ public class WcfBinaryCodec
             Console.WriteLine(e.Message);
             Console.WriteLine(e.StackTrace);
         }
+        
     }
 
     public async Task<byte[]> DecodeBinaryXML(byte[] binaryInput, bool? explodeNewLines)
@@ -216,23 +222,16 @@ public class WcfBinaryCodec
         try
         {
             doc.Load(xmlInput);
-        } catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
-            Console.WriteLine(e.StackTrace);
-        }
-
-        // write bytestream
-        try
-        {
-            using (var binaryWriter = XmlDictionaryWriter.CreateBinaryWriter(binaryOutput, WcfDictionaryBuilder.Dict, null, false))
+			
+			// write bytestream
+			using (var binaryWriter = XmlDictionaryWriter.CreateBinaryWriter(binaryOutput, WcfDictionaryBuilder.Dict, null, false))
             {
                 doc.Save(binaryWriter);
                 binaryWriter.Flush();
                 await binaryOutput.FlushAsync().ConfigureAwait(false);
             }
-        }
-        catch (Exception e)
+			
+        } catch (Exception e)
         {
             Console.WriteLine(e.Message);
             Console.WriteLine(e.StackTrace);

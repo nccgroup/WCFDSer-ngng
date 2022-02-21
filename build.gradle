@@ -1,11 +1,12 @@
-apply plugin: 'java'
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile 'net.portswigger.burp.extender:burp-extender-api:2.1'
+    implementation 'net.portswigger.burp.extender:burp-extender-api:2.3'
 }
 
 sourceSets {
